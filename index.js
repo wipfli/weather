@@ -12,9 +12,9 @@ const app = express()
 app.use(express.json())
 app.use(cors())
 
-//app.listen(process.env.PORT, () => {
-//    console.log('Weather service running on port ' + String(process.env.PORT))
-//})
+app.listen(process.env.PORT, () => {
+    console.log('Weather service running on port ' + String(process.env.PORT))
+})
 
 const getValue = async (id, time, key) => {
     const query = `SELECT "value" FROM stations WHERE "id" = '${id}' AND "key" = '${key}' AND time <= '${moment(time / 1e-3).toISOString()}' ORDER BY DESC LIMIT 1`
@@ -45,4 +45,14 @@ const getStation = async (id, time) => {
     }
 }
 
-getStation('0-20000-0-06601', 1614380290)
+app.get('/station', (req, res) => {
+    if (!req.query.id || !req.query.time) {
+        return res.sendStatus(400)
+    }
+    getStation(req.query.id, req.query.time)
+        .then(data => res.send(data))
+        .catch(err => {
+            console.log(err)
+            res.sendStatus(500)
+        })
+})
