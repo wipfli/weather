@@ -16,12 +16,33 @@ app.use(cors())
 //    console.log('Weather service running on port ' + String(process.env.PORT))
 //})
 
-const getStation = async (id, time) => {
-    const queryTemperature = `SELECT "value" FROM stations WHERE "id" = '${id}' AND "key" = 'tre200s0' AND time <= '${moment(time / 1e-3).toISOString()}' ORDER BY DESC LIMIT 1`
-
+const getValue = async (id, time, key) => {
+    const query = `SELECT "value" FROM stations WHERE "id" = '${id}' AND "key" = '${key}' AND time <= '${moment(time / 1e-3).toISOString()}' ORDER BY DESC LIMIT 1`
     const result = await influx.query(query)
 
-    console.log(result)
+    if (result[0]) {
+        return result[0].value
+    }
+    else {
+        return null
+    }
+}
+
+const getStation = async (id, time) => {
+    const temperature = await getValue(id, time, 'tre200s0')
+    const temperatureTower = await getValue(id, time, 'ta1tows0')
+
+    const windSpeed = await getValue(id, time, 'fu3010z0')
+    const windSpeedTower = await getValue(id, time, 'fu3towz0')
+
+    const gustSpeed = await getValue(id, time, 'fu3010z1')
+    const gustSpeedTower = await getValue(id, time, 'fu3towz1')
+
+    return {
+        temperature: (temperature ? temperature : temperatureTower),
+        windSpeed: (windSpeed ? windSpeed : windSpeedTower),
+        gustSpeed: (gustSpeed ? gustSpeed : gustSpeedTower),
+    }
 }
 
 getStation('0-20000-0-06601', 1614380290)
