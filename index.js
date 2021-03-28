@@ -39,7 +39,7 @@ const getStation = async (id, time) => {
     const gustSpeedTower = await getValue(id, time, 'fu3towz1')
 
     const windDirection = await getValue(id, time, 'dkl010z0')
-    const windDirectionTower = await getValue(id, time, 'fu3towz0')
+    const windDirectionTower = await getValue(id, time, 'dv1towz0')
 
     return {
         temperature: (temperature ? temperature : temperatureTower),
