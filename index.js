@@ -49,11 +49,43 @@ const getStation = async (id, time) => {
     }
 }
 
+const getMetar = async (stationId) => {
+    const query = `SELECT * FROM metar WHERE "station_id" = '${stationId}' ORDER BY DESC LIMIT 1`
+    const result = await influx.query(query)
+
+    if (result[0]) {
+        return {
+            dewpt: result[0].dewpt,  // dew point in K
+            press: result[0].press,  // pressure in Pa
+            station_id: result[0].station_id,  // 4 letter ICAO airport identifier
+            temp: result[0].temp,  // temperature in K
+            wind_dir: result[0].wind_dir,  // wind direction in deg
+            wind_speed: result[0].wind_speed,  // wind speed in m/s
+            time: result[0].time.getNanoTime() * 1e-9,  // unix timestamp
+        }
+    }
+    else {
+        return {}
+    }
+}
+
 app.get('/station', (req, res) => {
     if (!req.query.id || !req.query.time) {
         return res.sendStatus(400)
     }
     getStation(req.query.id, req.query.time)
+        .then(data => res.send(data))
+        .catch(err => {
+            console.log(err)
+            res.sendStatus(500)
+        })
+})
+
+app.get('/metar', (req, res) => {
+    if (!req.query.station_id) {
+        return res.sendStatus(400)
+    }
+    getMetar(req.query.station_id)
         .then(data => res.send(data))
         .catch(err => {
             console.log(err)
